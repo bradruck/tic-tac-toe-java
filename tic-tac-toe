@@ -1,0 +1,196 @@
+// TicTacToe
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.Scanner;
+
+public class TicTacToe {
+    private static final List<String> available_players = Arrays.asList("X", "O");
+    private static final List<String> squares = Arrays.asList("L1", "C1", "R1", "L2", "C2", "R2", "L3", "C3", "R3");
+    private static final List<Integer> valid_value = Arrays.asList(1, 10);
+    private static final String grid_layout = "L1\t\tC1\t\tR1\nL2\t\tC2\t\tR2\nL3\t\tC3\t\tR3\n";
+    private static final Map<String, Integer> map_values = Map.of("X", 1, "O", 10);
+    private static final Map<Integer, String> print_values = Map.of(1, "X", 10, "O", 0, "-");
+    private static final Map<String, Integer> game_status = new HashMap<>(9) {{
+            put("L1", 0);
+            put("C1", 0);
+            put("R1", 0);
+            put("L2", 0);
+            put("C2", 0);
+            put("R2", 0);
+            put("L3", 0);
+            put("C3", 0);
+            put("R3", 0);
+    }};
+    private static Scanner kb;
+    private static Integer mapped_entry = 0;
+    private static String player = "";
+    private static String loc;
+    public static final String RED = "\033[0;91m";
+    public static final String GREEN = "\033[0;92m";
+    public static final String BLUE = "\033[0;94m";
+    public static final String YELLOW = "\033[0;93m";
+    public static final String PURPLE = "\033[0;95m";
+    public static final String WHITE = "\033[0;97m";
+
+
+    // Initial method to launch a game
+    public static void main(String[] args) {
+        System.out.println (WHITE + "\nWelcome to a friendly game of Tic-Tac-Toe,");
+        // request initial play to choose X or O
+        choose_initial_player();
+        choose_square();
+    }
+
+    // Request player choice for initial move
+    private static void choose_initial_player() {
+        //Create Scanner object to read data from keyboard
+        kb = new Scanner(System.in);
+
+        System.out.print ("Please choose which player you wish to be, \"X\" or \"O\":  ");
+        player = kb.nextLine().toUpperCase();
+
+        while (!available_players.contains(player)) {
+            System.out.println ("That was not a valid entry, please enter either \"X\" or \"O\":  ");
+            player = kb.nextLine().toUpperCase();
+        }
+    }
+
+    // Alternate the players automatically
+    private static String alternate_player() {
+        if (player.equals("X")) {
+            return "O";
+        }
+        else {
+            return "X";
+        }
+    }
+
+    // Primary function to interact with players
+    private static void choose_square() {
+        // display board layout and prompt player to choose square and make entry
+        if (player.equals("X")) {
+            System.out.printf("\nYour turn " + BLUE + "\"%s\"", player);
+        }
+        else {
+            System.out.printf("\nYour turn " + YELLOW + "\"%s\"", player);
+        }
+        System.out.printf (WHITE + ", here is the board lay-out for choosing a square to play:\n%s",grid_layout);
+        System.out.print ("\nPlease enter the desired location of your move:  ");
+        loc = kb.nextLine().toUpperCase();
+        while (!squares.contains(loc)) {
+            System.out.print ("That was not a valid location, please re-enter the desired location:  ");
+            loc = kb.nextLine().toUpperCase();
+        }
+        mapped_entry = map_values.get(player);
+        validate_entry();
+    }
+
+    // Evaluate the entry for validity and square availability, loop back to choose_square() to continue turns
+    private static void validate_entry() {
+         // check to see if chosen square is already taken
+        if (!valid_value.contains(game_status.get(loc))) {
+            game_status.put(loc, mapped_entry);
+            // evaluate puzzle based on new entry
+            evaluate_game();
+            print_current_board();
+        }
+        else {
+            System.out.println ("That square has been taken, please re-enter a new square.");
+            System.out.println ("Here is the current board:");
+            print_current_board();
+            choose_square();
+        }
+        player = alternate_player();
+        choose_square();
+    }
+
+    // Evaluate game to determine if there is a winner, if not check if game is still in progress or a tie
+    private static void evaluate_game() {
+        if (evaluate_win_scenarios()) {
+            System.out.printf (GREEN + "\nYou win %s!!", player);
+        }
+        else {
+            //see if there are any open squares left, else game has resulted in a tie
+            for(int val : game_status.values()) {
+                if (val == 0) {
+                    System.out.println ("\nHere is the current board:");
+                    return;
+                }
+            }
+            System.out.println (PURPLE + "\nTie game!");
+        }
+        exit_game();
+    }
+
+    // Evaluate the various row, column or diagonal win possibilities
+    private static boolean evaluate_win_scenarios() {
+        if      ((game_status.get("L1") + game_status.get("C1") + game_status.get("R1")) == 3 ||
+                (game_status.get("L1") + game_status.get("C1") + game_status.get("R1")) == 30) {
+            return true;
+        }
+        else if ((game_status.get("L2") + game_status.get("C2") + game_status.get("R2")) == 3 ||
+                (game_status.get("L2") + game_status.get("C2") + game_status.get("R2")) == 30) {
+            return true;
+        }
+        else if ((game_status.get("L3") + game_status.get("C3") + game_status.get("R3")) == 3 ||
+                (game_status.get("L3") + game_status.get("C3") + game_status.get("R3")) == 30) {
+            return true;
+        }
+        else if ((game_status.get("L1") + game_status.get("L2") + game_status.get("L3")) == 3 ||
+                (game_status.get("L1") + game_status.get("L2") + game_status.get("L3")) == 30) {
+            return true;
+        }
+        else if ((game_status.get("C1") + game_status.get("C2") + game_status.get("C3")) == 3 ||
+                (game_status.get("C1") + game_status.get("C2") + game_status.get("C3")) == 30) {
+            return true;
+        }
+        else if ((game_status.get("R1") + game_status.get("R2") + game_status.get("R3")) == 3 ||
+                (game_status.get("R1") + game_status.get("R2") + game_status.get("R3")) == 30) {
+            return true;
+        }
+        else if ((game_status.get("L1") + game_status.get("C2") + game_status.get("R3")) == 3 ||
+                (game_status.get("L1") + game_status.get("C2") + game_status.get("R3")) == 30) {
+            return true;
+        }
+        else if ((game_status.get("L3") + game_status.get("C2") + game_status.get("R1")) == 3 ||
+                (game_status.get("L3") + game_status.get("C2") + game_status.get("R1")) == 30) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+    // Print the current state of the game board
+    private static void print_current_board() {
+        char[] cols = {'L', 'C', 'R'};
+        for (int row=1; row<4; row++) {
+            int n = 0;
+            for (int col=1; col<4; col++) {
+                String board_value = print_values.get(game_status.get(cols[n] + String.valueOf(row)));
+                if (board_value.equals("X")) {
+                    System.out.print(BLUE + board_value + "\t\t");
+                }
+                else if (board_value.equals("O")) {
+                    System.out.print(YELLOW + board_value + "\t\t");
+                }
+                else {
+                    System.out.print(WHITE + board_value + "\t\t");
+                }
+                n += 1;
+            }
+            System.out.println (WHITE);
+        }
+    }
+
+    // Print final result and exit
+    private static void exit_game() {
+        System.out.println (WHITE + "\nHere is the final board:");
+        print_current_board();
+        System.out.println (RED + "\nThank-you for playing!");
+        System.exit(0);
+    }
+}
